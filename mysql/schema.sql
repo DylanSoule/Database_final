@@ -6,20 +6,23 @@ CREATE TABLE `locations` (
   `climbing_type` SET('bouldering', 'sport', 'top rope', 'ice', 'alpine', 'trad') NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`parent_id`)
-      REFERENCES `location`(`id`)
+      REFERENCES `locations`(`id`)
+      ON DELETE CASCADE
 );
 
 CREATE TABLE `routes` (
   `id` INT AUTO_INCREMENT NOT NULL,
+  `name` TEXT NOT NULL,
   `location_id` INT NOT NULL,
-  `type` ENUM('bouldering', 'sport', 'top rope', 'ice', 'alpine', 'trad') NOT NULL,
+  `climbing_type` ENUM('bouldering','sport','top rope','ice','alpine','trad') NOT NULL,
   `grade` VARCHAR(5) NOT NULL,
   `description` TEXT,
-  `first_ascent_uid` TEXT,
+  `first_ascent` TEXT,
   `rating` FLOAT,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`location_id`)
-      REFERENCES `location`(`id`)
+      REFERENCES `locations`(`id`)
+      ON DELETE CASCADE
 );
 
 CREATE TABLE `users` (
@@ -37,10 +40,10 @@ CREATE TABLE `ascents` (
   `user_rating` FLOAT,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`route_id`)
-       REFERENCES `route` (`id`)
+       REFERENCES `routes` (`id`)
        ON DELETE CASCADE,
   FOREIGN KEY (`user_id`)
-        REFERENCES `user` (`id`)
+        REFERENCES `users` (`id`)
         ON DELETE CASCADE
 );
 
@@ -48,13 +51,13 @@ CREATE TABLE `comments` (
   `id` INT AUTO_INCREMENT NOT NULL,
   `route_id` INT NOT NULL,
   `user_id` INT NOT NULL,
-  `comment` TEXT,
+  `comment` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`route_id`)
-       REFERENCES `route` (`id`)
+       REFERENCES `routes` (`id`)
        ON DELETE CASCADE,
   FOREIGN KEY (`user_id`)
-        REFERENCES `user` (`id`)
+        REFERENCES `users` (`id`)
         ON DELETE CASCADE
 );
 
@@ -64,9 +67,9 @@ CREATE TABLE `wishlists` (
   `user_id` INT NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`route_id`)
-       REFERENCES `route` (`id`)
+       REFERENCES `routes` (`id`)
        ON DELETE CASCADE,
   FOREIGN KEY (`user_id`)
-        REFERENCES `user` (`id`)
+        REFERENCES `users` (`id`)
         ON DELETE CASCADE
 );
