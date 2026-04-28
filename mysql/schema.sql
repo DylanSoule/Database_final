@@ -18,7 +18,7 @@ CREATE TABLE `routes` (
   `grade` VARCHAR(5) NOT NULL,
   `description` TEXT,
   `first_ascent` TEXT,
-  `rating` FLOAT,
+  `rating` FLOAT CHECK (rating >= 0 AND rating <= 5.0),
   PRIMARY KEY (`id`),
   FOREIGN KEY (`location_id`)
       REFERENCES `locations`(`id`)
@@ -37,7 +37,7 @@ CREATE TABLE `ascents` (
   `id` INT AUTO_INCREMENT NOT NULL,
   `route_id` INT NOT NULL,
   `user_id` INT NOT NULL,
-  `user_rating` FLOAT,
+  `user_rating` FLOAT CHECK (user_rating >= 0 AND user_rating <= 5.0),
   PRIMARY KEY (`id`),
   FOREIGN KEY (`route_id`)
        REFERENCES `routes` (`id`)
