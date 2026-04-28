@@ -27,7 +27,7 @@ CREATE TABLE `routes` (
 
 CREATE TABLE `users` (
   `id` INT AUTO_INCREMENT NOT NULL,
-  `user_name` VARCHAR(50) NOT NULL,
+  `user_name` VARCHAR(50) NOT NULL UNIQUE,
   `max_grade` VARCHAR(5),
   `description` TEXT,
   PRIMARY KEY (`id`)   
