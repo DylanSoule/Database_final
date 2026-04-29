@@ -1,6 +1,5 @@
 import database as db
-from terminaltables3 import AsciiTable as table
-
+from terminaltables3 import AsciiTable as tables
 
 def create_user():
     while True:
@@ -17,13 +16,16 @@ def create_user():
             break
     description = input("Input user description\n")
     try:
-        db.create_user()
-    except:
+        db.create_user(uname,mgrade,description if description else None)
+        print("\nUser creation successful\n\n\n")
+    except Exception as e:
+        print(e)
         create_user()
     return None
 
 
 def login():
+    print("Input Login Credentials\n")
     name = input("What is your user name?\n")
     uid = db.validate_user(name)
     if uid and uid != LookupError:
@@ -31,19 +33,101 @@ def login():
     else:
         print("That is not a valid user")
         uinp = ""
-        while uinp != "1" or uinp != "2" or uinp != "3":
-            input("Would you like to\n[1] Try Again\n[2] Create a user\n[3] Quit\n")
-        if uinp == "1":
-            return login()
-        elif uinp == "2":
-            create_user()
-            return login()
-        else:
-            exit()
+        while uinp != "1" and uinp != "2" and uinp != "3":
+            uinp = input("Would you like to\n[1] Try Again\n[2] Create a user\n[3] Quit\n")
+            if uinp == "1":
+                return login()
+            elif uinp == "2":
+                create_user()
+                return login()
+            elif uinp == "3":
+                exit()
 
+def browsing(dbase):
+    pass
+
+def ascents(dbase):
+    while True:
+        action = input("What would you like to do now?\n     You can add climbs to your ascents on their page(Use browse climbs)\n[1] View Ascents\n[2] Search For Climb/Area\n[3] Delete Climb\n[4] Quit Wishlist\n")
+        try:
+            if action == "1":
+                table_data = dbase.pull_ascents()
+                table_data.insert(0,("Climb Name","Grade","Description","Self Rating"))
+                table = tables(table_data)
+                print("Your Ascents:")
+                print(table.table)
+                print("\n")
+            elif action == "2":
+                name = input("What is the name of the climb/area\n")
+                table_data = dbase.search("ascents",name)
+                table_data.insert(0,("Area Name","Climb Name","Grade","Description"))
+                table = tables(table_data)
+                print("Results:")
+                print(table.table)
+                print("\n")
+            elif action == "3":
+                name = input("What is the name of the climb you want to delete\n")
+                table_data = dbase.search('ascents',name)
+                table_data.insert(0,("Area Name","Climb Name","Grade","Description","Your Rating"))
+                table = tables(table_data)
+                print(table.table)
+                if input("Are you sure you want to delete this climb(s) from your wishlist(y/n) ").lower()=="y":
+                    for i in range(len(table_data)-1):
+                        dbase.delete_asc_data(table_data[i+1][0],table_data[i+1][1])
+            elif action == "4":
+                break
+        except:
+            print("Unknown Error")
+            break
+
+
+def wishlist(dbase):
+    while True:
+        action = input("What would you like to do now?\n     You can add climbs to your wishlist on their page(Use browse climbs)\n[1] View Wishlist\n[2] Search For Climb/Area\n[3] Delete Climb\n[4] Quit Wishlist\n")
+        try:
+            if action == "1":
+                table_data = dbase.pull_wishlist()
+                table_data.insert(0,("Climb Name","Grade","Description"))
+                table = tables(table_data)
+                print("Your Wishlist:")
+                print(table.table)
+                print("\n")
+            elif action == "2":
+                name = input("What is the name of the climb/area\n")
+                table_data = dbase.search("wishlists",name)
+                table_data.insert(0,("Area Name","Climb Name","Grade","Description"))
+                table = tables(table_data)
+                print("Results:")
+                print(table.table)
+                print("\n")
+            elif action == "3":
+                name = input("What is the name of the climb you want to delete\n")
+                table_data = dbase.search("wishlists",name)
+                table_data.insert(0,("Area Name","Climb Name","Grade","Description"))
+                table = tables(table_data)
+                print(table.table)
+                if input("Are you sure you want to delete this climb(s) from your wishlist(y/n) ").lower()=="y":
+                    for i in range(len(table_data)-1):
+                        dbase.delete_wl_data(table_data[i+1][0],table_data[i+1][1])
+            elif action == "4":
+                break
+        except:
+            print("Unknown Error")
+            break
 
 def main():
     dbase = login()
+    print("You're logged in\n\n")
+    while True:
+        action = input("What would you like to do now?\n[1] Browse Climbs\n[2] View or Edit Ascents\n[3] View or Edit Wishlist\n[4] Quit App\n")
+        if action == "1":
+            browsing(dbase)
+        elif action == "2":
+            ascents(dbase)
+        elif action == "3":
+            wishlist(dbase)
+        elif action == "4":
+            break
 
 
 if __name__=="__main__":

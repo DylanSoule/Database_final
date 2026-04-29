@@ -42,7 +42,7 @@ def validate_user(uname):
             conn.close()
             return LookupError
 
-def create_user(uname, max_grade, description):
+def create_user(uname, max_grade, description=None):
     conn = create_connection()
     if not conn:
         return LookupError
@@ -54,6 +54,9 @@ def create_user(uname, max_grade, description):
             print(f"Error: {e}")
             conn.close()
             return LookupError
+    conn.commit()
+    conn.close()
+    return None
 
 
 
@@ -63,16 +66,17 @@ class db_mngr:
         
     def pull_wishlist(self):
         """
-        Returns a tuple of tuples: the wishlist for a specific user in form ((name,grade,description),...,(name,grade,description))
+        Returns a list of tuples: the wishlist for a specific user in form [(name,grade,description),...,(name,grade,description)]
         """
-        conn = self.create_connection()
+        conn = create_connection()
         if not conn:
             return LookupError
         c = conn.cursor()
         try:
-            c.execute("""SELECT (r.name,r.grade,r.description) FROM routes r
-                    JOIN wishlists w ON w.route_id=r.route_id
-                    WHERE w.user_id=%s""",(self.uid))
+            print(self.uid)
+            c.execute("""SELECT r.name,r.grade,r.description FROM routes r
+                    JOIN wishlists w ON w.route_id=r.id
+                    WHERE w.user_id=%s""",(self.uid,))
             wishlist=c.fetchall()
         except Exception as e:
             print(f"Error: {e}")
@@ -81,18 +85,19 @@ class db_mngr:
         conn.close()
         return wishlist
     
+
     def pull_ascents(self):
         """
-        Returns a tuple of tuples: the wishlist for a specific user in form ((name,grade,description,user_rating),...,(name,grade,description,user_rating))
+        Returns a list of tuples: the wishlist for a specific user in form [(name,grade,description,user_rating),...,(name,grade,description,user_rating)]
         """
-        conn = self.create_connection()
+        conn = create_connection()
         if not conn:
             return LookupError
         c = conn.cursor()
         try:
-            c.execute("""SELECT (r.name,r.grade,r.description,a.rating) FROM routes r
-                    JOIN ascents a ON a.route_id=r.route_id
-                    WHERE a.user_id=%s""",(self.uid))
+            c.execute("""SELECT r.name,r.grade,r.description,a.user_rating FROM routes r
+                    JOIN ascents a ON a.route_id=r.id
+                    WHERE a.user_id=%s""",(self.uid,))
             ascents=c.fetchall()
         except Exception as e:
             print(f"Error: {e}")
@@ -100,3 +105,76 @@ class db_mngr:
             return LookupError
         conn.close()
         return ascents
+    
+    def search(self, table, search):
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+        print(table)
+        try:
+            if table == "wishlists":
+                c.execute("""SELECT l.name,r.name,r.grade,r.description FROM routes r
+                        JOIN wishlists w ON w.route_id=r.id
+                        JOIN locations l ON l.id=r.location_id
+                        WHERE w.user_id=%s AND (l.name LIKE %s OR r.name LIKE %s)""",(self.uid,"%{}%".format(search),"%{}%".format(search),))
+            elif table == "ascents":
+                c.execute("""SELECT l.name,r.name,r.grade,r.description,a.user_rating FROM routes r
+                        JOIN ascents a ON a.route_id=r.id
+                        JOIN locations l ON l.id=r.location_id
+                        WHERE a.user_id=%s AND (l.name LIKE %s OR r.name LIKE %s)""",(self.uid,"%{}%".format(search),"%{}%".format(search),))
+            try:
+                result = c.fetchall()
+            except Exception as e:
+                print(e)
+                conn.close()
+                return []
+            conn.close()
+            return(result)
+        except Exception as e:
+            print(f"Error: {e}")
+            conn.close()
+            return LookupError
+    
+    def delete_wl_data(self, area, climb):
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+        try:
+            c.execute("""SELECT r.id FROM wishlists w
+                    JOIN routes r ON r.id=w.route_id
+                    JOIN locations l ON l.id=r.location_id
+                    WHERE w.user_id=%s AND r.name=%s AND l.name=%s""",(self.uid,climb,area,))
+            cid = c.fetchone()[0]
+            c.execute("DELETE FROM wishlists WHERE user_id=%s AND route_id=%s;",(self.uid,cid,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error: {e}")
+            conn.close()
+            return LookupError
+        
+    def delete_asc_data(self, area, climb):
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+        try:
+            c.execute("""SELECT r.id FROM ascents a
+                    JOIN routes r ON r.id=a.route_id
+                    JOIN locations l ON l.id=r.location_id
+                    WHERE a.user_id=%s AND r.name=%s AND l.name=%s""",(self.uid,climb,area,))
+            cid = c.fetchone()[0]
+            c.execute("DELETE FROM ascents WHERE user_id=%s AND route_id=%s;",(self.uid,cid,))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Error: {e}")
+            conn.close()
+            return LookupError
+
+
+if __name__=="__main__":
+    test = db_mngr("3")
+    print(test.search('ascents','G'))

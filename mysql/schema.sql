@@ -73,3 +73,7 @@ CREATE TABLE `wishlists` (
         REFERENCES `users` (`id`)
         ON DELETE CASCADE
 );
+
+CREATE USER 'app_user'@'%' IDENTIFIED BY '1234';
+GRANT SELECT, UPDATE, DELETE, INSERT ON climbing_app.* TO 'app_user'@'%';
+FLUSH PRIVILEGES;
