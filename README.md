@@ -92,6 +92,11 @@ python3 python_app/main.py
 
 ---
 
+## Testing instructions
+
+In order to test program create database and run the program, you can loop move through the app to test and get feeling for how program works.
+
+---
 
 ## Reflection
 
