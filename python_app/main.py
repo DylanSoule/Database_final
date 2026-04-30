@@ -44,7 +44,15 @@ def login():
                 exit()
 
 def browsing(dbase):
-    pass
+    parent_name = ""
+    while True:
+        print("Select One of the options below\n")
+        output = dbase.list_locations(parent_name)
+        print(f"{output[0][0]}:")
+        print(f"{output[0][1]}\n\n")
+        
+
+
 
 def ascents(dbase):
     while True:
@@ -60,7 +68,7 @@ def ascents(dbase):
             elif action == "2":
                 name = input("What is the name of the climb/area\n")
                 table_data = dbase.search("ascents",name)
-                table_data.insert(0,("Area Name","Climb Name","Grade","Description"))
+                table_data.insert(0,("Area Name","Climb Name","Grade","Description","Your Rating"))
                 table = tables(table_data)
                 print("Results:")
                 print(table.table)
@@ -76,8 +84,8 @@ def ascents(dbase):
                         dbase.delete_asc_data(table_data[i+1][0],table_data[i+1][1])
             elif action == "4":
                 break
-        except:
-            print("Unknown Error")
+        except Exception as e:
+            print("Unknown Error",e)
             break
 
 

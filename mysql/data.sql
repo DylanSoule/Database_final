@@ -1,3 +1,5 @@
+USE DATABASE climbing_app;
+
 INSERT INTO locations (name,description,climbing_type) VALUES
 ('Europe','Climbing in the continent of Europe',"bouldering,sport,top rope,ice,alpine,trad"),
 ('USA','Climbing in the country of USA',"bouldering,sport,top rope,ice,alpine,trad");

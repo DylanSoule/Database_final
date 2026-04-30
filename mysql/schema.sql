@@ -1,3 +1,6 @@
+CREATE DATABASE climbing_app;
+USE DATABASE climbing_app;
+
 CREATE TABLE `locations` (
   `id` INT AUTO_INCREMENT NOT NULL,
   `parent_id` INT,

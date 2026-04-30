@@ -174,6 +174,55 @@ class db_mngr:
             conn.close()
             return LookupError
 
+    def get_parent_name(self,child_name):
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+
+        c.execute("SELECT parent_id FROM locations WHERE name=%s",(child_name,))
+        pid = c.fetchone[0]
+        c.execute("SELECT name FROM locations WHERE id=%s",(pid,))
+        conn.close()
+        return c.fetchone[0]
+
+    def list_locations(self,parent_name,search=""):
+        """
+        
+        """
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+        
+        if search=="":
+            if parent_name=="":
+                c.execute("SELECT name, type FROM locations WHERE parent_id IS NULL;")
+                locations = c.fetchall()
+                conn.close()
+                return ("The whole world","You live here"),locations,[]
+            else:
+                c.execute("SELECT name,description FROM locations WHERE name=%s",(parent_name,))
+                location_data = c.fetchone()
+                c.execute("""SELECT l.name, l.type FROM locations l
+                        JOIN locations p ON l.parent_id=p.id
+                        WHERE p.name=%s""",(parent_name,))
+                locations = c.fetchall()
+                c.execute("""SELECT r.name,r.grade,r.climbing_type FROM routes r
+                        JOIN locations l ON l.id=r.location_id
+                        WHERE l.name=%s""",(parent_name,))
+                climbs = c.fetchall()
+                conn.close()
+                return location_data,locations,climbs
+        else:
+            c.execute("SELECT name,type FROM locations WHERE name LIKE %s",("%{}%".format(search),))
+            locations = c.fetchall()
+            c.execute("SELECT name,grade,climbing_type FROM routes WHERE name LIKE %s",("%{}%".format(search),))
+            climbs = c.fetchall()
+            conn.close()
+            return ("Search Results","Listed Below are your search results"),locations,climbs
+
+
 
 if __name__=="__main__":
     test = db_mngr("3")
