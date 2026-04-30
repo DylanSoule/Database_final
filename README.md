@@ -53,25 +53,25 @@ python3 python_app/main.py
 
 **Browse locations and climbs**
 
-- ![browsing](docs/browsing.png)
+![browsing](docs/browsing.png)
 
-- ![view_climb](docs/view_climb.png)
+![view_climb](docs/view_climb.png)
 
-- ![view_comments](docs/view_comments.png)
+![view_comments](docs/view_comments.png)
 
 **View a climb and add an ascent**
 
-- ![ascents_menu](docs/ascents.png)
+![ascents_menu](docs/ascents.png)
 
-- ![view_ascents](docs/view_ascents.png)
+![view_ascents](docs/view_ascents.png)
 
-- ![search](docs/search.png)
+![search](docs/search.png)
 
 **Wishlist and ascents management**
 
-- ![Wishlist_menu](docs/wishlist_menu.png)
+![Wishlist_menu](docs/wishlist_menu.png)
 
-- ![Wishlist](docs/see_wishlist.png)
+![Wishlist](docs/see_wishlist.png)
 
 
 ---
@@ -95,8 +95,6 @@ python3 python_app/main.py
 
 ## Reflection
 
-This project reinforced how important a well-structured relational schema is for building a usable application. The relationships between locations, routes, and user actions required careful foreign key design to keep data consistent.
+This project further increased my understanding of how databases work within themselves and how you can link them together. One specific challenge that was part of this was the self referencing table locations. Figuring out how to solve this was a problem that increased my knowledge and toolset for sql databases.
 
-It also highlighted practical challenges with CLI UX and input validation. Ensuring clean user input, avoiding crashes, and providing clear feedback took more time than expected, but improved the overall reliability of the app.
-
-Finally, working end-to-end (schema → data seeding → app logic) showed how small inconsistencies can ripple through the system. Iterating on queries and joins helped build a better understanding of SQL and how application logic depends on it.
+I also had to solve how to format and return data for slightly different, yet related outputs with browse climbs. I ended up solving this problem by returning a list of lists that i could loop through and assign and store values on to be able to operate on and record results. 
