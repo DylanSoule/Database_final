@@ -23,7 +23,6 @@ def create_user():
         create_user()
     return None
 
-
 def login():
     print("Input Login Credentials\n")
     name = input("What is your user name?\n")
@@ -43,15 +42,103 @@ def login():
             elif uinp == "3":
                 exit()
 
+def view_climb(dbase,climb_name):
+    while True:
+        info=dbase.climb_info(0,climb_name)
+        print(f"{info[0]}: {info[1]} {info[2]}")
+        print(f"Description: {info[3]}\n\n")
+        action = input("Select One of the options below:\n[1] View Comments\n[2] Add to wishlist\n[3] Mark Ascent\n[4] View ascents\n[5] Add comment\n[6] Go back\n")
+
+        if action =="1":
+            comments = dbase.climb_info(1,climb_name)
+            print("\n")
+            for comment in comments:
+                print(f"{comment[0]}\n{comment[1]}\n")
+            input("Press enter to go back")
+        elif action =="2":
+            dbase.climb_info(2,climb_name)
+            print("\nAdded to wishlist\n")
+        elif action =="3":
+            while True:
+                rating=input("What is your rating of the climb?(0-5)\n")
+                try:
+                    rating = float(rating)
+                    break
+                except:
+                    continue
+            dbase.climb_info(3,climb_name,uinput=rating)
+            print("\nMarked Ascent\n")
+        elif action == "4":
+            ascents = dbase.climb_info(4,climb_name)
+            print("\n")
+            for ascent in ascents:
+                print(f"{ascent[0]} | user rating: {ascent[1]}")
+            input("\nPress enter to go back")
+        elif action == "5":
+            comment = input("\nWhat would you like to comment\n")
+            dbase.climb_info(5,climb_name,uinput=comment)
+            print("\nAdded Comment\n")
+        elif action == "6":
+            break
+
 def browsing(dbase):
-    parent_name = ""
+    parent_name = "The Whole World"
+    search = ""
     while True:
         print("Select One of the options below\n")
-        output = dbase.list_locations(parent_name)
-        print(f"{output[0][0]}:")
-        print(f"{output[0][1]}\n\n")
-        
+        output = dbase.list_locations(parent_name,search=search)
+        search=""
+        parent_name=output[0][0]
+        print(f"{parent_name}:")
+        print(f"{output[0][1]}\n")
 
+        location_list = []
+        climb_list = []
+
+        if output[1]:
+            print("Sub-Locations:")
+            for i in range(len(output[1])):
+                location_list.append((i,output[1][i],))
+                print(f"[{location_list[i][0]}] {location_list[i][1][0]}: {', '.join(map(str,location_list[i][1][1]))}")
+        if output[2]:
+            print("\nClimbs in location:")
+            for i in range(len(output[1]),len(output[1])+len(output[2])):
+                climb_list.append((i,output[2][i-len(output[1])],))
+                print(f"[{climb_list[i-len(output[1])][0]}] {climb_list[i-len(output[1])][1][0]}: {climb_list[i-len(output[1])][1][1]}, {climb_list[i-len(output[1])][1][2]}")
+        
+        print("\n[s] Search for a location or climb")
+        print("[b] Go back")
+        print("[e] Exit Browsing\n")
+
+        action = input("What would you like to view/do\n")
+
+        if action=="s":
+            search=input("What would you like to search for\n")
+            continue
+        elif action=="b":
+            search=""
+            if parent_name != "Search Results":
+                parent_name=dbase.get_parent_name(parent_name if parent_name != "The whole world" else "")
+                continue
+            else:
+                parent_name="The Whole World"
+                continue
+        elif action=="e":
+            break
+        else:
+            search=""
+            action = int(action)
+            if location_list:
+                if action <= location_list[-1][0]:
+                    for location in location_list:
+                        if location[0]==action:
+                            parent_name = location[1][0]
+                            break
+            else:
+                for climb in climb_list:
+                    if climb[0]==action:
+                        view_climb(dbase,climb[1][0])
+                        break
 
 
 def ascents(dbase):

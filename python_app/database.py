@@ -83,8 +83,7 @@ class db_mngr:
             conn.close()
             return LookupError
         conn.close()
-        return wishlist
-    
+        return wishlist  
 
     def pull_ascents(self):
         """
@@ -175,16 +174,20 @@ class db_mngr:
             return LookupError
 
     def get_parent_name(self,child_name):
+        if child_name=="The Whole World":
+            return "The Whole World"
+
         conn = create_connection()
         if not conn:
             return LookupError
         c = conn.cursor()
 
         c.execute("SELECT parent_id FROM locations WHERE name=%s",(child_name,))
-        pid = c.fetchone[0]
+        pid = c.fetchone()[0]
         c.execute("SELECT name FROM locations WHERE id=%s",(pid,))
+        parent_name=c.fetchone()[0]
         conn.close()
-        return c.fetchone[0]
+        return parent_name
 
     def list_locations(self,parent_name,search=""):
         """
@@ -197,14 +200,14 @@ class db_mngr:
         
         if search=="":
             if parent_name=="":
-                c.execute("SELECT name, type FROM locations WHERE parent_id IS NULL;")
+                c.execute("SELECT name, climbing_type FROM locations WHERE parent_id IS NULL;")
                 locations = c.fetchall()
                 conn.close()
                 return ("The whole world","You live here"),locations,[]
             else:
                 c.execute("SELECT name,description FROM locations WHERE name=%s",(parent_name,))
                 location_data = c.fetchone()
-                c.execute("""SELECT l.name, l.type FROM locations l
+                c.execute("""SELECT l.name, l.climbing_type FROM locations l
                         JOIN locations p ON l.parent_id=p.id
                         WHERE p.name=%s""",(parent_name,))
                 locations = c.fetchall()
@@ -215,15 +218,66 @@ class db_mngr:
                 conn.close()
                 return location_data,locations,climbs
         else:
-            c.execute("SELECT name,type FROM locations WHERE name LIKE %s",("%{}%".format(search),))
+            c.execute("SELECT name,climbing_type FROM locations WHERE name LIKE %s",("%{}%".format(search),))
             locations = c.fetchall()
             c.execute("SELECT name,grade,climbing_type FROM routes WHERE name LIKE %s",("%{}%".format(search),))
             climbs = c.fetchall()
             conn.close()
             return ("Search Results","Listed Below are your search results"),locations,climbs
 
+    def climb_info(self,action,climb_name,uinput=None):
+        conn = create_connection()
+        if not conn:
+            return LookupError
+        c = conn.cursor()
+        if action==0:
+            c.execute("""SELECT name,grade,climbing_type,description FROM routes WHERE name=%s""",(climb_name,))
+            info = c.fetchone()
+            conn.close()
+            return info
+        elif action==1:
+            c.execute("SELECT id FROM routes WHERE name=%s",(climb_name,))
+            cid=c.fetchone()[0]
+            c.execute("""SELECT u.user_name,c.comment FROM comments c
+                      JOIN users u ON c.user_id=u.id
+                      WHERE c.route_id=%s""",(cid,))
+            comments = c.fetchall()
+            conn.close()
+            return comments
+        elif action==2:
+            c.execute("SELECT id FROM routes WHERE name=%s",(climb_name,))
+            cid=c.fetchone()[0]
+            c.execute("INSERT INTO wishlists (user_id,route_id) VALUES (%s,%s)",(self.uid,cid,))
+            conn.commit()
+            conn.close()
+            return None
+        elif action==3:
+            c.execute("SELECT id FROM routes WHERE name=%s",(climb_name,))
+            cid=c.fetchone()[0]
+            c.execute("INSERT INTO ascents (user_id,route_id,user_rating) VALUES (%s,%s,%s)",(self.uid,cid,uinput,))
+            conn.commit()
+            conn.close()
+            return None
+        elif action==4:
+            c.execute("SELECT id FROM routes WHERE name=%s",(climb_name,))
+            cid=c.fetchone()[0]
+            c.execute("""SELECT u.user_name,a.user_rating FROM ascents a
+                      JOIN users u ON a.user_id=u.id
+                      WHERE a.route_id=%s""",(cid,))
+            ascents = c.fetchall()
+            conn.close()
+            return ascents
+        elif action==5:
+            c.execute("SELECT id FROM routes WHERE name=%s",(climb_name,))
+            cid=c.fetchone()[0]
+            c.execute("INSERT INTO comments (user_id,route_id,comment) VALUES (%s,%s,%s)",(self.uid,cid,uinput,))
+            conn.commit()
+            conn.close()
+            return None
+
+
 
 
 if __name__=="__main__":
     test = db_mngr("3")
-    print(test.search('ascents','G'))
+    print(test.get_parent_name('Europe'))

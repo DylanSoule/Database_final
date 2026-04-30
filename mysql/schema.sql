@@ -1,5 +1,8 @@
+DROP DATABASE IF EXISTS climbing_app;
+
 CREATE DATABASE climbing_app;
-USE DATABASE climbing_app;
+
+USE climbing_app;
 
 CREATE TABLE `locations` (
   `id` INT AUTO_INCREMENT NOT NULL,
