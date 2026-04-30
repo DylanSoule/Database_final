@@ -108,6 +108,8 @@ def browsing(dbase):
         
         print("\n[s] Search for a location or climb")
         print("[b] Go back")
+        print("[nl] Add sublocation")
+        print("[nc] Add climb to location")
         print("[e] Exit Browsing\n")
 
         action = input("What would you like to view/do\n")
@@ -123,6 +125,10 @@ def browsing(dbase):
             else:
                 parent_name="The Whole World"
                 continue
+        elif action=="nl":
+            pass
+        elif action=="nc":
+            pass
         elif action=="e":
             break
         else:
