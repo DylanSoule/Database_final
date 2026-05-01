@@ -191,23 +191,16 @@ def create_climb(dbase,parent_name):
         else:
             fa=None
         
-        # Optional rating
-        rating = input("Would you like to add a rating?(y/n) ")
-        if rating.lower() != "y" and rating.lower() != "n":
+        #rating
+        rating = input("Input rating(0.0-5.0)\n")
+        try:
+            rating = float(rating)
+        except:
+            continue
+        if not rating or (rating < 0.0 or rating > 5.0):
             print("Make Sure you enter information correctly\n")
             continue
-        elif rating.lower() == "y":
-            rating = input("Input rating(0.0-5.0)\n")
-            try:
-                rating = float(rating)
-            except:
-                continue
-            if not rating or (rating < 0.0 or rating > 5.0):
-                print("Make Sure you enter information correctly\n")
-                continue
-        else:
-            fa=None
-        
+            
         # Map numeric selection to climb type
         climb_type=input("What type of climb is the climb\n[1] bouldering\n[2] sport\n[3] top rope\n[4] ice\n[5] alpine\n[6] trad\n")
         try: 
@@ -231,71 +224,60 @@ def browsing(dbase):
     while True:
         subprocess.run(['clear'], shell=False)
         print("Select One of the options below\n")
-        # Fetch current location, sub-locations, and climbs
-        output = dbase.list_locations(parent_name,search=search)
-        search=""
-        parent_name=output[0][0]
+        output = dbase.list_locations(parent_name, search=search)
+        parent_name = output[0][0]
         print(f"{parent_name}:")
         print(f"{output[0][1]}\n")
 
         location_list = []
         climb_list = []
+        selection_map = {}
 
         if output[1]:
             print("Sub-Locations:")
             for i in range(len(output[1])):
-                location_list.append((i,output[1][i],))
-                # Display location name and types
+                location_list.append((i, output[1][i],))
+                selection_map[i] = ("location", output[1][i][0])
                 print(f"[{location_list[i][0]}] {location_list[i][1][0]}: {', '.join(map(str,location_list[i][1][1]))}")
         if output[2]:
             print("\nClimbs in location:")
-            for i in range(len(output[1]),len(output[1])+len(output[2])):
-                climb_list.append((i,output[2][i-len(output[1])],))
-                # Display climb name, grade, and type
+            for i in range(len(output[1]), len(output[1]) + len(output[2])):
+                climb_list.append((i, output[2][i-len(output[1])],))
+                selection_map[i] = ("climb", output[2][i-len(output[1])][0])
                 print(f"[{climb_list[i-len(output[1])][0]}] {climb_list[i-len(output[1])][1][0]}: {climb_list[i-len(output[1])][1][1]}, {climb_list[i-len(output[1])][1][2]}")
-        
-        # Navigation/action menu
+
         print("\n[s] Search for a location or climb")
         print("[b] Go back")
-        print("[nl] Add sublocation")
-        print("[nc] Add climb to location")
+        if search == "":
+            print("[nl] Add sublocation")
+            print("[nc] Add climb to location")
         print("[e] Exit Browsing\n")
 
         action = input("What would you like to view/do\n")
 
         if action=="s":
-            search=input("What would you like to search for\n")
+            search = input("What would you like to search for\n")
             continue
         elif action=="b":
-            search=""
-            # Go to parent (or reset from search)
+            search = ""
             if parent_name != "Search Results":
-                parent_name=dbase.get_parent_name(parent_name if parent_name != "The whole world" else "")
-                continue
+                parent_name = dbase.get_parent_name(parent_name if parent_name != "The whole world" else "")
             else:
-                parent_name="The Whole World"
-                continue
-        elif action=="nl":
-            create_location(dbase,parent_name)
-        elif action=="nc":
-            create_climb(dbase,parent_name)
+                parent_name = "The Whole World"
+            continue
+        elif action=="nl" and search == "":
+            create_location(dbase, parent_name)
+        elif action=="nc" and search == "":
+            create_climb(dbase, parent_name)
         elif action=="e":
             break
-        else:
-            # Numeric selection from list
-            search=""
-            action = int(action)
-            if location_list:
-                if action <= location_list[-1][0]:
-                    for location in location_list:
-                        if location[0]==action:
-                            parent_name = location[1][0]
-                            break
-            else:
-                for climb in climb_list:
-                    if climb[0]==action:
-                        view_climb(dbase,climb[1][0])
-                        break
+        elif action.isdigit():
+            selection = selection_map.get(int(action))
+            if selection:
+                if selection[0] == "location":
+                    parent_name = selection[1]
+                else:
+                    view_climb(dbase, selection[1])
 
 
 def ascents(dbase):
@@ -333,7 +315,7 @@ def ascents(dbase):
                 table_data.insert(0,("Area Name","Climb Name","Grade","Description","Your Rating"))
                 table = tables(table_data)
                 print(table.table)
-                if input("Are you sure you want to delete this climb(s) from your wishlist(y/n) ").lower()=="y":
+                if input("Are you sure you want to delete this climb(s) from your ascents(y/n) ").lower()=="y":
                     for i in range(len(table_data)-1):
                         dbase.delete_asc_data(table_data[i+1][0],table_data[i+1][1])
             elif action == "4":

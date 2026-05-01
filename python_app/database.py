@@ -157,24 +157,19 @@ class db_mngr:
             return LookupError
     
     def delete_wl_data(self, area, climb):
-        """
-        Delete a wishlist entry for a given area and climb.
-        
-        Args:
-            area: Location name.
-            climb: Route name.
-        """
+        """Delete a wishlist entry for a given area and climb."""
         conn = create_connection()
         if not conn:
             return LookupError
         c = conn.cursor()
         try:
-            c.execute("""SELECT r.id FROM wishlists w
+            area = area.strip()
+            climb = climb.strip()
+            c.execute("""DELETE w FROM wishlists w
                     JOIN routes r ON r.id=w.route_id
                     JOIN locations l ON l.id=r.location_id
-                    WHERE w.user_id=%s AND r.name=%s AND l.name=%s""",(self.uid,climb,area,))
-            cid = c.fetchone()[0]
-            c.execute("DELETE FROM wishlists WHERE user_id=%s AND route_id=%s;",(self.uid,cid,))
+                    WHERE w.user_id=%s AND r.name=%s AND l.name=%s""",
+                    (self.uid, climb, area))
             conn.commit()
             conn.close()
         except Exception as e:
